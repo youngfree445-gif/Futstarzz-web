@@ -1,0 +1,27 @@
+# Cache para el deploy por DRAG AND DROP.
+#
+# netlify.toml vive en la raiz del repo y Netlify solo lo lee cuando construye el sitio el mismo
+# (deploy conectado a git). Arrastrando la carpeta dist/ a mano, ese archivo NO viaja y sus reglas
+# de cache no se aplican nunca. Este _headers si viaja: Vite copia todo lo de public/ dentro de
+# dist/, y Netlify lee _headers desde la carpeta publicada.
+#
+# Por que importa: Vite le pone un hash al nombre de cada archivo de /assets segun su contenido, asi
+# que esos se pueden cachear para siempre. Pero index.html NO tiene hash y es el que dice que
+# archivos cargar. Si el navegador o el CDN lo cachean de mas, queda apuntando a un JS de un build
+# viejo que ya no existe en el deploy nuevo -> 404 en todo -> pantalla en blanco.
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# El service worker NUNCA se cachea. Es el archivo que decide que se guarda y que no; si el
+# navegador se queda con una copia vieja, el juego sigue sirviendo el build anterior para siempre y
+# ningun deploy nuevo llega nunca. Mismo motivo que index.html, pero peor: este se auto-perpetua.
+
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate

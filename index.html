@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fut Starzz 2026</title>
+
+    <!-- APP INSTALABLE (PWA).
+         Rutas RELATIVAS y no absolutas a proposito: el mismo build se publica en Netlify (raiz) y
+         en GitHub Pages (subcarpeta /Futstarzz/). Con "/manifest.webmanifest" el de Pages daria 404
+         y el navegador no ofreceria instalar. -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <meta name="theme-color" content="#e11d2e" />
+    <meta name="description" content="Simulador de carrera futbolistica: de las inferiores a la seleccion." />
+    <script type="module" crossorigin src="/futstarzz-web/assets/index-DRTGfouc.js"></script>
+    <link rel="stylesheet" crossorigin href="/futstarzz-web/assets/index-nx1pwyFn.css">
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- El service worker se registra despues de load para no competir con la carga del juego.
+         Envuelto en try/catch y con guarda: en Capacitor (movil) el protocolo no siempre lo admite
+         y un error acá dejaria la pantalla en blanco por algo que es puramente opcional. -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          try {
+            navigator.serviceWorker.register('sw.js').then(function () {
+              // LOS ESCUDOS, PARA JUGAR SIN INTERNET. Un rato después de cargar -- para no competirle
+              // la conexión al juego -- y sólo si hay red, se le pide al service worker que guarde
+              // todos los escudos. Baja únicamente los que falten o hayan cambiado: la segunda vez
+              // que se abre el juego no baja nada. Ver guardarEscudos en sw.js.
+              setTimeout(function () {
+                if (!navigator.onLine) return;
+                navigator.serviceWorker.ready.then(function (reg) {
+                  if (reg.active) reg.active.postMessage({ tipo: 'guardar-escudos' });
+                });
+              }, 15000);
+            }).catch(function () {});
+          } catch (e) {}
+        });
+      }
+    </script>
+  </body>
+</html>
